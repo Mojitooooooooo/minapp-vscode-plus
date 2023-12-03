@@ -9,7 +9,10 @@ import { map, series } from './mora/async';
 import { parseAttrs } from './parseAttrs'
 import * as JSON5 from 'json5'
 import * as path from 'path'
+import * as vscode from 'vscode'
 import { noderequire } from '../../utils/noderequire';
+import { config } from '../../plugin/lib/config';
+import { TextDocument } from 'vscode';
 
 const JSON_CACHE: { [key: string]: ConditionalCacheableFile } = {}
 
@@ -20,13 +23,12 @@ export interface CustomOptions {
 
 export { Component }
 
-export async function getCustomComponents(co?: CustomOptions): Promise<Component[]> {
-  if (!co) return []
+const getComponents = async (co: CustomOptions): Promise<Component[]> => {
   const f = getCachedJsonFile(co.filename)
   try {
     const data = await f.getContent()
     const jsonfile = f.filename as string
-    if (data && data.usingComponents) {
+    if (data?.usingComponents) {
       return await map(
         Object.keys(data.usingComponents),
         async name => {
@@ -42,9 +44,25 @@ export async function getCustomComponents(co?: CustomOptions): Promise<Component
         0
       )
     }
-  } catch (e) {}
-
+  } catch (e) {
+  }
   return []
+}
+
+export async function getGlobalComponents(doc: TextDocument): Promise<Component[]> {
+  const { globalAppJsonPath } = config
+  if(!globalAppJsonPath) {
+    return []
+  }
+  const root = vscode.workspace.getWorkspaceFolder(doc.uri)
+
+  return getComponents({ filename: path.join(root?.uri.fsPath || '', globalAppJsonPath), resolves: [] })
+}
+
+export async function getCustomComponents(co?: CustomOptions): Promise<Component[]> {
+  if (!co) return []
+
+  return getComponents(co)
 }
 
 async function parseComponentFile(

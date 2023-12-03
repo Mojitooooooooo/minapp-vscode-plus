@@ -3,7 +3,8 @@
  Author Mora <qiuzhongleiabc@126.com> (https://github.com/qiu8310)
 *******************************************************************/
 
-import { CustomOptions, getCustomComponents } from './custom'
+import { TextDocument } from 'vscode'
+import { CustomOptions, getCustomComponents, getGlobalComponents } from './custom'
 import {
   components,
   Component,
@@ -33,12 +34,14 @@ export interface TagAttrItem {
  * 自动补全支持的所有的 tag
  * @param {CustomOptions} co 用于解析自定义组件的配置
  */
-export async function autocompleteTagName(lc: LanguageConfig, co?: CustomOptions) {
+export async function autocompleteTagName(lc: LanguageConfig, doc: TextDocument, co?: CustomOptions) {
   const natives: TagItem[] = [...lc.components, ...components].map(mapComponent)
+  const globals: TagItem[] = (await getGlobalComponents(doc)).map(mapComponent)
   const customs: TagItem[] = (await getCustomComponents(co)).map(mapComponent)
 
   return {
     customs,
+    globals,
     natives,
   }
 }

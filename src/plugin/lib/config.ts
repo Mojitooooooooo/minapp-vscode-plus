@@ -78,6 +78,8 @@ export interface Config {
   documentSelector: string[]
   /** */
   sass: Options
+  /** 全局配置文件地址 */
+  globalAppJsonPath: string
 }
 
 export const config: Config = {
@@ -108,6 +110,7 @@ export const config: Config = {
   prettier: {},
   documentSelector: ['wxml'],
   sass: {},
+  globalAppJsonPath: ''
 }
 
 
@@ -139,6 +142,7 @@ function getConfig() {
   config.jsBeautifyHtml = minapp.get('jsBeautifyHtml', {})
   config.documentSelector = minapp.get('documentSelector', ['wxml'])
   config.sass = minapp.get('sass', {})
+  config.globalAppJsonPath = minapp.get('globalAppJsonPath', '')
 }
 
 function getResolveRoots(doc: vscode.TextDocument): string[] {
