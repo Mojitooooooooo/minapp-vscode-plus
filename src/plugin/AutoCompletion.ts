@@ -210,7 +210,7 @@ export default abstract class AutoCompletion {
           // 函数自动补全
           return this.autoCompleteMethods(doc, attrValue.replace(/"|'/, ''))
         } else if (attrValue.trim() === '') {
-          const values = await autocompleteTagAttrValue(tag.name, tag.attrName, lc, this.getCustomOptions(doc))
+          const values = await autocompleteTagAttrValue(tag.name, tag.attrName, lc, doc, this.getCustomOptions(doc))
           if (!values.length) return []
           let range = doc.getWordRangeAtPosition(pos, /['"]\s*['"]/)
           if (range) {
@@ -233,7 +233,7 @@ export default abstract class AutoCompletion {
       }
       return []
     } else {
-      const res = await autocompleteTagAttr(tag.name, tag.attrs, lc, this.getCustomOptions(doc))
+      const res = await autocompleteTagAttr(tag.name, tag.attrs, lc, doc, this.getCustomOptions(doc))
       let triggers: CompletionItem[] = []
 
       const { natives, basics } = res

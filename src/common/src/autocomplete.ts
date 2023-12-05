@@ -36,7 +36,7 @@ export interface TagAttrItem {
  */
 export async function autocompleteTagName(lc: LanguageConfig, doc: TextDocument, co?: CustomOptions) {
   const natives: TagItem[] = [...lc.components, ...components].map(mapComponent)
-  const globals: TagItem[] = (await getGlobalComponents(doc)).map(mapComponent)
+  const globals: TagItem[] = (await getGlobalComponents(doc, co)).map(mapComponent)
   const customs: TagItem[] = (await getCustomComponents(co)).map(mapComponent)
 
   return {
@@ -58,9 +58,10 @@ export async function autocompleteTagAttr(
   tagName: string,
   tagAttrs: { [key: string]: string | boolean },
   lc: LanguageConfig,
+  doc: TextDocument,
   co?: CustomOptions
 ) {
-  const attrs = await getAvailableAttrs(tagName, tagAttrs, lc, co)
+  const attrs = await getAvailableAttrs(tagName, tagAttrs, lc, doc, co)
 
   // 属性不能是已经存在的，也不能是事件
   const filter = createComponentFilter(tagAttrs, false)
@@ -79,9 +80,10 @@ export async function autocompleteTagAttrValue(
   tagName: string,
   tagAttrName: string,
   lc: LanguageConfig,
+  doc: TextDocument,
   co?: CustomOptions
 ) {
-  const comp = await getComponent(tagName, lc, co)
+  const comp = await getComponent(tagName, lc, doc, co)
   if (!comp || !comp.attrs) return []
   const attr = comp.attrs.find(a => a.name === tagAttrName)
   if (!attr) return []
@@ -139,10 +141,10 @@ function createComponentFilter(existsTagAttrs: { [key: string]: string | boolean
   }
 }
 
-async function getComponent(tagName: string, lc: LanguageConfig, co?: CustomOptions) {
+async function getComponent(tagName: string, lc: LanguageConfig, doc: TextDocument, co?: CustomOptions) {
   let comp = [...lc.components, ...components].find(c => c.name === tagName)
   if (!comp) {
-    comp = (await getCustomComponents(co)).find(c => c.name === tagName)
+    comp = ([...await getCustomComponents(co), ...await getGlobalComponents(doc, co)]).find(c => c.name === tagName)
   }
   return comp
 }
@@ -151,9 +153,10 @@ async function getAvailableAttrs(
   tagName: string,
   tagAttrs: { [key: string]: string | boolean },
   lc: LanguageConfig,
+  doc: TextDocument,
   co?: CustomOptions
 ) {
-  const comp = await getComponent(tagName, lc, co)
+  const comp = await getComponent(tagName, lc, doc, co)
   return comp ? getAvailableAttrsFromComponent(comp, tagAttrs) : []
 }
 

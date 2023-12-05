@@ -49,14 +49,14 @@ const getComponents = async (co: CustomOptions): Promise<Component[]> => {
   return []
 }
 
-export async function getGlobalComponents(doc: TextDocument): Promise<Component[]> {
+export async function getGlobalComponents(doc: TextDocument, co?: CustomOptions): Promise<Component[]> {
   const { globalAppJsonPath } = config
   if(!globalAppJsonPath) {
     return []
   }
   const root = vscode.workspace.getWorkspaceFolder(doc.uri)
 
-  return getComponents({ filename: path.join(root?.uri.fsPath || '', globalAppJsonPath), resolves: [] })
+  return getComponents({ filename: path.join(root?.uri.fsPath || '', globalAppJsonPath), resolves: co?.resolves || [] })
 }
 
 export async function getCustomComponents(co?: CustomOptions): Promise<Component[]> {
