@@ -3,6 +3,7 @@
  Author Mora <qiuzhongleiabc@126.com> (https://github.com/qiu8310)
 *******************************************************************/
 
+// import { config } from '../../plugin/lib/config'
 import { ComponentAttr } from './dev'
 
 /*
@@ -28,6 +29,8 @@ const MULTIPLE_LINE_START_REGEXP = /^(\s+)(?:\w+.)?properties\s*[:=]\s*\{(.*?)$/
 // 单行以及多行注释
 const DOC_REGEXP = /\/\*\*([\s\S]*?)\*\/[\s\n\r]*(\w+)\s*:|\/\/([\s\S]*?)[\s\n\r]*(\w+)\s*:/g
 const TYPE_REGEXP = /^function\s+(\w+)\(/
+
+const VALUE_REGEXP = /(\w+:\s*{(?:[^}]+,\s*)*\s*value:\s*)[^,}]+/g;
 
 export function parseAttrs(content: string): ComponentAttr[] {
   let attrs: ComponentAttr[] | undefined
@@ -56,8 +59,21 @@ export function parseAttrs(content: string): ComponentAttr[] {
   return attrs || []
 }
 
+function checkPropertiesValid(objstr: string) {
+  try {
+    const fn = new Function(`return {${objstr}}`)
+    fn()
+  } catch {
+    return false
+  }
+  return true
+}
+
 function parseObjStr(objstr: string) {
   try {
+    if(!checkPropertiesValid(objstr)) {
+      objstr = objstr.replace(VALUE_REGEXP, '$1undefined')
+    }
     const fn = new Function(`return {${objstr}}`)
     const obj = fn()
 

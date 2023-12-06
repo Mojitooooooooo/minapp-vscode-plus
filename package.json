@@ -314,6 +314,11 @@
         "minapp-vscode.sass": {
           "type": "object",
           "description": "scss/sass 配置，用于解析 scss/sass 文件，方便样式名称在 wxml 模板中自动补全"
+        },
+        "minapp-vscode.globalAppJsonPath": {
+          "type": "string",
+          "default": "",
+          "description": "项目 app.json 位置，用于全局组件自动补全"
         }
       }
     },
