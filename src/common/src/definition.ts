@@ -3,15 +3,16 @@
  Author Mora <qiuzhongleiabc@126.com> (https://github.com/qiu8310)
 *******************************************************************/
 
-import { Component, CustomOptions, getCustomComponents } from "./custom";
+import { TextDocument } from "vscode";
+import { Component, CustomOptions, getCustomComponents, getGlobalComponents } from "./custom";
 import { LanguageConfig } from "./dev";
 
-export async function definitionTagName(tagName: string, lc: LanguageConfig, co?: CustomOptions): Promise<Component | undefined> {
+export async function definitionTagName(tagName: string, lc: LanguageConfig, doc: TextDocument, co?: CustomOptions): Promise<Component | undefined> {
   if (['wxs', 'include'].indexOf(tagName) !== -1 || lc.components.some(item => item.name === tagName)) {
     return undefined;
   }
 
-  const components: Component[] = await getCustomComponents(co);
+  const components: Component[] = [...await getCustomComponents(co), ...await getGlobalComponents(doc, co)];
   for (const component of components) {
     if (component.name === tagName) {
       return component;

@@ -18,7 +18,7 @@ export class PropDefinitionProvider implements DefinitionProvider {
       const language = getLanguage(document, position);
       if (tag.isOnTagName) {
         if (language) {
-          const component = await definitionTagName(tag.name, language, getCustomOptions(this.config, document));
+          const component = await definitionTagName(tag.name, language, document, getCustomOptions(this.config, document));
           if (component && component.path) {
             locs.push(new Location(Uri.file(component.path), new Position(0, 0)))
           }
