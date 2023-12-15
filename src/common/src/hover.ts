@@ -3,16 +3,17 @@
  Author Mora <qiuzhongleiabc@126.com> (https://github.com/qiu8310)
 *******************************************************************/
 
-import { CustomOptions, getCustomComponents } from './custom'
+import { TextDocument } from 'vscode'
+import { CustomOptions, getCustomComponents, getGlobalComponents } from './custom'
 import { components, getComponentMarkdown, getComponentAttrMarkdown, ComponentAttr, LanguageConfig } from './dev'
 
-export async function hoverComponentMarkdown(tag: string, lc: LanguageConfig, co?: CustomOptions) {
-  const comp = await getComponent(tag, lc, co)
+export async function hoverComponentMarkdown(tag: string, lc: LanguageConfig, doc: TextDocument, co?: CustomOptions) {
+  const comp = await getComponent(tag, lc, doc, co)
   return comp ? getComponentMarkdown(comp) : undefined
 }
 
-export async function hoverComponentAttrMarkdown(tag: string, name: string, lc: LanguageConfig, co?: CustomOptions) {
-  const comp = await getComponent(tag, lc, co)
+export async function hoverComponentAttrMarkdown(tag: string, name: string, lc: LanguageConfig, doc: TextDocument, co?: CustomOptions) {
+  const comp = await getComponent(tag, lc, doc, co)
   if (!comp) return
   const attrs = comp.attrs || []
 
@@ -36,10 +37,10 @@ export async function hoverComponentAttrMarkdown(tag: string, name: string, lc: 
   return attr ? getComponentAttrMarkdown(attr) : undefined
 }
 
-async function getComponent(tagName: string, lc: LanguageConfig, co?: CustomOptions) {
+async function getComponent(tagName: string, lc: LanguageConfig, doc: TextDocument, co?: CustomOptions) {
   let comp = [...lc.components, ...components].find(c => c.name === tagName)
   if (!comp) {
-    comp = (await getCustomComponents(co)).find(c => c.name === tagName)
+    comp = ([...await getCustomComponents(co), ...await getGlobalComponents(doc, co)]).find(c => c.name === tagName)
   }
   return comp
 }

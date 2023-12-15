@@ -27,9 +27,9 @@ export default class implements HoverProvider {
 
     let markdown: string | undefined
     if (tag.isOnTagName) {
-      markdown = await hoverComponentMarkdown(tag.name, language, co)
+      markdown = await hoverComponentMarkdown(tag.name, language, document, co)
     } else if (!tag.isOnTagName && tag.posWord && !/^(wx|bind|catch):/.test(tag.posWord)) {
-      markdown = await hoverComponentAttrMarkdown(tag.name, tag.posWord, language, co)
+      markdown = await hoverComponentAttrMarkdown(tag.name, tag.posWord, language, document, co)
     }
 
     return markdown ? new Hover(new MarkdownString(markdown)) : null
