@@ -31,7 +31,7 @@ import { getTagAtPosition } from './getTagAtPosition/'
 import * as s from './res/snippets'
 import { getClass } from './lib/StyleFile'
 import { getCloseTag } from './lib/closeTag'
-import { getProp } from './lib/ScriptFile'
+import { getProp, getProps } from './lib/ScriptFile'
 
 export default abstract class AutoCompletion {
   abstract id: 'wxml' | 'wxml-pug'
@@ -195,7 +195,7 @@ export default abstract class AutoCompletion {
    */
   async createComponentAttributeSnippetItems(lc: LanguageConfig, doc: TextDocument, pos: Position): Promise<CompletionItem[]> {
     const tag = getTagAtPosition(doc, pos)
-    if (!tag) return []
+    if (!tag) return this.createVariableSnippetItems(lc, doc, pos);
     if (tag.isOnTagName) {
       return this.createComponentSnippetItems(lc, doc, pos, tag.name)
     }
@@ -231,7 +231,8 @@ export default abstract class AutoCompletion {
 
         //   return this.autoCompleteMethods(doc, attrValue.replace(/"|'/, ''))
       }
-      return []
+      // 变量补全
+      return this.createVariableSnippetItems(lc, doc, pos)
     } else {
       const res = await autocompleteTagAttr(tag.name, tag.attrs, lc, doc, this.getCustomOptions(doc))
       let triggers: CompletionItem[] = []
@@ -260,6 +261,16 @@ export default abstract class AutoCompletion {
         ...triggers,
       ]
     }
+  }
+
+  /**
+   * 变量自动补全
+   */
+  async createVariableSnippetItems(lc: LanguageConfig, doc: TextDocument, pos: Position): Promise<CompletionItem[]> {
+      // 判断是否是在 {{ }} 中
+    const range = doc.getWordRangeAtPosition(pos, /\{\{[\s\w]+\}\}/)
+    if (!range) return []
+    return getProps(doc.uri.fsPath).map(label => ({ label, kind: CompletionItemKind.Variable, detail: 'data, properties, computed' }));
   }
 
   /**

@@ -2,12 +2,14 @@ import { getFileContent, match, getPositionFromIndex } from './helper'
 import * as path from 'path'
 import * as fs from 'fs'
 import { Location, Uri, Position, Range, window } from 'vscode'
+import * as ts from 'typescript';
 
 interface PropInfo {
   loc: Location
   name: string
   detail: string
 }
+
 /**
  * js/ts 文件映射缓存
  */
@@ -16,13 +18,21 @@ const wxJsMapCache = new Map<string, string>()
  * 结果缓存
  */
 const resultCache = new Map<string, { version: number; data: PropInfo[] }>()
-
+/**
+ * 
+ */
+const VariableInfoCache = new Map<string, { version: number; data: string[] }>();
 /**
  * 保留字段,
  * 用于无限制匹配式函数过滤
  * `if(x){}` 等满足函数正
  */
 const reservedWords = ['if', 'switch', 'catch', 'while', 'for', 'constructor']
+
+/**
+ * 变量字段
+ */
+const variableKeyWord = ['data', 'properties', 'computed']
 
 function parseScriptFile(file: string, type: string, prop: string) {
   const content = getFileContent(file)
@@ -183,4 +193,60 @@ export function getProp(wxmlFile: string, type: string, prop: string): PropInfo[
     resultCache.set(key, { version, data: result })
   }
   return result
+}
+
+/**
+ * 解析文件 ast 目前仅支持 ts
+ */
+export function parseScriptFileWithAST(file: string): any {
+  const content = getFileContent(file).replaceAll(/import\s*(?:{[^}]*}|\S+)\s*from\s*['"]([^'"]+)['"];/g, '')
+
+  // 使用parser生成最上层的SourceFile
+  const sourceFile = ts.createSourceFile(
+    file,
+    content,
+    ts.ScriptTarget.ES2015,
+    true
+  );
+
+  const constructorExpression = sourceFile.statements.reduce((prev, item) => {
+    if(item.kind === ts.SyntaxKind.ExpressionStatement) {
+      const expression = (item as ts.ExpressionStatement).expression as ts.CallExpression;
+      if(expression?.arguments?.length === 1) {
+        return [...prev, expression.arguments[0]] 
+      }
+    }
+
+    return [...prev]
+  }, [] as ts.Expression[])
+
+  const varibles = (constructorExpression[0] as ts.ObjectLiteralExpressionBase<ts.ObjectLiteralElement>).properties
+    .filter(i => variableKeyWord.includes((i.name as ts.Identifier)?.escapedText as unknown as string))
+  
+  const allVaribles: string[] = varibles.reduce((prev, cur) => {
+    return [
+      ...prev,
+      // @ts-ignore
+      ...cur.initializer.properties.reduce((pre, current) => [...pre, current.name.escapedText], [])
+    ]
+  }, [] as any).filter((i: string) => i[0].match(/[a-zA-Z]/))
+
+  return [...new Set(allVaribles)]
+}
+
+/**
+ * 根据 ast 树结构提取 js 或 ts 中的变量，包括 data, properties, computed。
+ */
+export function getProps(wxmlFile: string): string[] {
+  const scriptFile = getScriptFile(wxmlFile)
+  if (!scriptFile) return []
+
+  const cache = VariableInfoCache.get(scriptFile);
+  const version = getVersion(scriptFile)
+
+  if(cache && cache.version === version) {
+    return cache.data
+  }
+
+  return parseScriptFileWithAST(scriptFile);
 }
