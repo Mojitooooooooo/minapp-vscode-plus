@@ -203,8 +203,10 @@ export default abstract class AutoCompletion {
       const attrValue = tag.attrs[tag.attrName]
       if (tag.attrName === 'class' || /^[\w\d-]+-class/.test(tag.attrName)) {
         // `class` 或者 `xxx-class` 自动提示 class 名
-        const existsClass = (tag.attrs[tag.attrName] || '') as string
-        return this.autoCompleteClassNames(doc, existsClass ? existsClass.trim().split(/\s+/) : [])
+        const existsClass = (tag.attrs[tag.attrName] || '') as string;
+        // class 时也需要有变量的自动补全
+        const [variableItems, classItems] = await Promise.all([this.createVariableSnippetItems(lc, doc, pos), this.autoCompleteClassNames(doc, existsClass ? existsClass.trim().split(/\s+/) : [])]);
+        return [...variableItems, ...classItems];
       } else if (typeof attrValue === 'string') {
         if (tag.attrName.startsWith('bind') || tag.attrName.startsWith('catch')) {
           // 函数自动补全
