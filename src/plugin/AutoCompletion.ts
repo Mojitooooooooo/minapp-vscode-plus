@@ -312,7 +312,7 @@ export default abstract class AutoCompletion {
       return modifiers.map(m => new CompletionItem(m, CompletionItemKind.Constant))
     }
 
-    const res = await autocompleteSpecialTagAttr(prefix, tag.name, tag.attrs, lc, this.getCustomOptions(doc))
+    const res = await autocompleteSpecialTagAttr(prefix, tag.name, tag.attrs, lc, doc, this.getCustomOptions(doc))
     const kind = isEventPrefix ? CompletionItemKind.Event : CompletionItemKind.Field
     return [
       ...res.customs.map(c => this.renderTagAttr(c, 'a', kind)),

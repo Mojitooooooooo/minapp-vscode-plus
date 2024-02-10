@@ -16,6 +16,7 @@ import {
   getComponentAttrValueMarkdown,
   LanguageConfig,
 } from './dev'
+import { readFile } from './lib'
 
 export interface TagItem {
   component: Component
@@ -101,11 +102,15 @@ export async function autocompleteTagAttrValue(
   })
 }
 
+// triggerEvent 的参数说明
+const TRIGGER_EVENT_REX = /this\.triggerEvent\(\s*['"]([^'"]+)['"]/gm
+
 export async function autocompleteSpecialTagAttr(
   prefix: string,
   tagName: string,
   tagAttrs: { [key: string]: string | boolean },
   lc: LanguageConfig,
+  doc: TextDocument,
   co?: CustomOptions
 ) {
   let customs: TagAttrItem[] = []
@@ -115,11 +120,17 @@ export async function autocompleteSpecialTagAttr(
     natives = lc.custom[prefix].attrs.filter(attr => tagAttrs[prefix + attr.name] == null).map(mapComponentAttr)
   } else if (lc.event.prefixes.includes(prefix)) {
     customs = []
-    /* let filter = createComponentFilter(tagAttrs, true)
-    customs = (await getAvailableAttrs(tagName, tagAttrs, lc, co))
-      .filter(filter)
-      .map(a => ({ ...a, name: a.name.replace(/^(bind|catch)/, '') } as ComponentAttr)) // 去除 bind/catch 前缀
-      .map(mapComponentAttr) */
+    // 1.首先找到对应组件的 js 或者 ts 文件，然后正则匹配？
+    const comp = await getComponent(tagName, lc, doc, co)
+    if(comp?.path) {
+      // 表示是自定义组件
+      const fileContent = (await readFile(comp.path)).toString();
+      // 使用 match 方法提取所有匹配项
+      const matches = [...fileContent.matchAll(TRIGGER_EVENT_REX)];
+      // 提取并打印第一个参数（去除引号）
+      const eventNames = [...new Set(matches.map(match => match[1]))];
+      customs = eventNames.map(i => ({ name: i })).map(mapComponentAttr)
+    }
     natives = lc.event.attrs.filter(attr => tagAttrs[prefix + attr.name] == null).map(mapComponentAttr)
   }
   return { customs, natives }
