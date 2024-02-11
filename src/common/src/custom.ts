@@ -139,13 +139,16 @@ function getCachedJsonFile(filename: string) {
 
 /**
  * 根据目录中的某个文件来获取当前目录中同名的 json 文件
- *
+ * 如果没找到，则找到该目录下的第一个 json 文件
  * @export
  * @param {string} filename 目录中的某个文件
  */
 async function getJsonFilePath(dir: string, base: string) {
   base += '.'
   const names = await readdir(dir)
-  const name = names.find(n => n.startsWith(base) && !n.substr(base.length).includes('.') && JSON_REGEXP.test(n))
+  let name = names.find(n => n.startsWith(base) && !n.substr(base.length).includes('.') && JSON_REGEXP.test(n))
+  if(!name) {
+    name = names.find(n => JSON_REGEXP.test(n))
+  }
   return name ? path.join(dir, name) : undefined
 }
