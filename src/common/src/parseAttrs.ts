@@ -4,6 +4,7 @@
 *******************************************************************/
 
 // import { config } from '../../plugin/lib/config'
+import { getComponentProps } from '../../plugin/lib/ScriptFile'
 import { ComponentAttr } from './dev'
 
 /*
@@ -35,7 +36,7 @@ const VALUE_REGEXP = /(\w+:\s*{(?:[^}]+,\s*)*\s*value:\s*)[^,}]+/g;
 export function parseAttrs(content: string): ComponentAttr[] {
   let attrs: ComponentAttr[] | undefined
   if (SINGLE_LINE_REGEXP.test(content)) {
-    attrs = parseObjStr(RegExp.$1)
+    attrs = parseObjStr(RegExp.$1, content)
   }
 
    if (!attrs) {
@@ -53,7 +54,7 @@ export function parseAttrs(content: string): ComponentAttr[] {
         objstr += RegExp.$2
       }
     })
-    if (flag === 2) attrs = parseObjStr(objstr)
+    if (flag === 2) attrs = parseObjStr(objstr, content)
   }
 
   return attrs || []
@@ -69,7 +70,11 @@ function checkPropertiesValid(objstr: string) {
   return true
 }
 
-function parseObjStr(objstr: string) {
+/**
+ * 优先使用正则表达式解析（速度更快），但是部分语法不支持，会解析报错
+ * 解析报错后使用 AST 进行解析，
+ */
+function parseObjStr(objstr: string, content: string) {
   try {
     if(!checkPropertiesValid(objstr)) {
       objstr = objstr.replace(VALUE_REGEXP, '$1undefined')
@@ -109,7 +114,8 @@ function parseObjStr(objstr: string) {
 
     return attrs
   } catch (e) {
-    console.log('解析失败:', (e as any)?.message)
+    // 如果解析失败则使用 AST 解析
+    return getComponentProps(content)
     // console.log(`{${objstr}}`)
   }
   return

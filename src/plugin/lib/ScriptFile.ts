@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import { Location, Uri, Position, Range, window } from 'vscode'
 import * as ts from 'typescript';
+import { ComponentAttr } from '../../common/src';
 
 interface PropInfo {
   loc: Location
@@ -197,6 +198,7 @@ export function getProp(wxmlFile: string, type: string, prop: string): PropInfo[
 
 /**
  * 解析文件 ast 目前仅支持 ts
+ * PLAN: ts api 类型断言函数
  */
 export function parseScriptFileWithAST(file: string): any {
   const content = getFileContent(file).replaceAll(/import\s*(?:{[^}]*}|\S+)\s*from\s*['"]([^'"]+)['"];/g, '')
@@ -249,4 +251,41 @@ export function getProps(wxmlFile: string): string[] {
   }
 
   return parseScriptFileWithAST(scriptFile);
+}
+
+export function getComponentProps(content: string) {
+  // 创建源文件对象
+  const sourceFile = ts.createSourceFile('component.js', content, ts.ScriptTarget.Latest, true);
+
+  const constructorExpression = sourceFile.statements.reduce((prev, item) => {
+    if(item.kind === ts.SyntaxKind.ExpressionStatement) {
+      const expression = (item as ts.ExpressionStatement).expression as ts.CallExpression;
+      if(expression?.arguments?.length === 1) {
+        return [...prev, expression.arguments[0]] 
+      }
+    }
+
+    return [...prev]
+  }, [] as ts.Expression[])
+
+  const argument = constructorExpression[0];
+
+  const attrs: ComponentAttr[] = [];
+
+  if (ts.isObjectLiteralExpression(argument)) {
+    const propertiesProperty = argument.properties.find(p =>
+      ts.isPropertyAssignment(p) && p.name.getText(sourceFile) === 'properties'
+    ) as ts.PropertyAssignment;
+
+    if (propertiesProperty) {
+      const properties = propertiesProperty.initializer as ts.ObjectLiteralExpression;
+      properties.properties.forEach(prop => {
+        if (ts.isPropertyAssignment(prop)) {
+          attrs.push({ name: prop.name.getText(sourceFile) })
+        }
+      });
+    }
+  }
+
+  return attrs;
 }
