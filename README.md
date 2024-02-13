@@ -1,4 +1,4 @@
-## fork from ![minapp-vscode](https://github.com/Mojitooooooooo/minapp-vscode)
+## fork from [minapp-vscode](https://github.com/wx-minapp/minapp-vscode)
 ### 新增部分功能
 - wxml 变量补全
 - 属性提示
