@@ -1,23 +1,12 @@
+## fork from ![minapp-vscode](https://github.com/Mojitooooooooo/minapp-vscode)
+### 新增部分功能
+- wxml 变量补全
+- 属性提示
+- Bind 事件名补全
+- Template wxml 中相关提示
+- Props 部分情况下无提示问题修复
+
 <img align="right" width="90px" src="https://funimg.pddpic.com/mobile_piggy/0fe81c13-7691-49ae-bb6e-39586d58a1d7.png.slim.png" alt="wxml language features logo" />
-
-## WXML - Language Service
-[![CI Status](https://github.com/wx-minapp/minapp-vscode/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wx-minapp/minapp-vscode/actions/workflows/ci.yml?query=branch%3Amaster)
-[![Deploy Status](https://github.com/wx-minapp/minapp-vscode/actions/workflows/deploy.yml/badge.svg)](https://github.com/wx-minapp/minapp-vscode/actions/workflows/deploy.yml)
-[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/qiu8310.minapp-vscode?color=brightgreen&label=Visual%20Studio%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=qiu8310.minapp-vscode)
-![Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/qiu8310.minapp-vscode)
-![Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/qiu8310.minapp-vscode)
-![Marketplace Rating](https://img.shields.io/visual-studio-marketplace/r/qiu8310.minapp-vscode)
-
-### 最近更新 【[CHANGELOG.md](https://github.com/wx-minapp/minapp-vscode/blob/main/CHANGELOG.md)】
-> [@iChenLei](https://github.com/ichenlei) 已接手维护本插件，欢迎大家在钉钉群或者 [Github issues](https://github.com/wx-minapp/minapp-vscode/issues) 提意见。
-
-### 用户交流钉钉群
-
-| 用户1群 | 用户2群 | 用户3群 |
-| :-----:  | :------: | :-----: |
-| <img src="https://funimg.pddpic.com/vgt/db86d742-5210-472b-ae47-a4a21f89a1a1.jpg.slim.jpeg" width="200px" /> | <img src="https://funimg.pddpic.com/vgt/8a60773c-2f4c-495a-a63f-45c80b32cacf.jpg.slim.jpeg" width="200px" /> | 暂无 |
-
-> 请使用阿里巴巴旗下 [钉钉(Dingtalk)](https://www.dingtalk.com) APP 扫码进入交流群，反馈 Bug /给插件维护者提需求，相比 Github issues 更加接地气地与插件维护者交流。加一个群即可，1 群满了试试加 2 群。如果遇到二维码过期或者群都满了的问题请提 [issue](https://github.com/wx-minapp/minapp-vscode/issues) 给插件维护者。
 
 ### 主要功能
 
@@ -158,6 +147,15 @@ vue 中的 template 板支持两个属性：
 ![示例图片](https://n1image.hjfile.cn/res7/2018/03/09/fce0b3e9496cae95c1c81523725a1fef.gif)
 
 <a id="highlight"></a>
+
+### wxml 变量补全,全局组件提示
+```
+"minapp-vscode.globalAppJsonPath": "xxx"
+"editor.quickSuggestions": {
+  "strings": "on"
+}
+```
+
 
 ### 模板文件中 js 变量高亮（纯 wxml 或 pug 文件才支持，vue 文件不支持）
 
