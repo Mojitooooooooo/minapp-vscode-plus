@@ -150,6 +150,7 @@ vue 中的 template 板支持两个属性：
 
 ### wxml 变量补全,全局组件提示
 ```
+<!-- app.json 路径，用于提取全局组件 -->
 "minapp-vscode.globalAppJsonPath": "xxx"
 "editor.quickSuggestions": {
   "strings": "on"
