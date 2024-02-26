@@ -316,7 +316,7 @@
         {
           "command": "minapp-vscode.createMiniprogramComponent",
           "group": "navigation@10",
-          "when": "minapp-vscode:init && resourceExtname == '' && activeViewlet == 'workbench.view.explorer'"
+          "when": "minapp-vscode:init && resourceExtname == ''"
         }
       ]
     },
