@@ -150,7 +150,7 @@ export default abstract class AutoCompletion {
    * 创建组件名称的自动补全
    */
   async createComponentSnippetItems(lc: LanguageConfig, doc: TextDocument, pos: Position, prefix?: string): Promise<CompletionItem[]> {
-    const res = await autocompleteTagName(lc, doc, this.getCustomOptions(doc))
+    const res = await autocompleteTagName(lc, doc, prefix || '', this.getCustomOptions(doc))
     const filter = (key: string) => key && (!prefix || prefix.split('').every(c => key.includes(c)))
     const filterComponent = (t: TagItem) => filter(t.component.name)
     const customsNames = res.customs.map((t: TagItem) => t.component.name)

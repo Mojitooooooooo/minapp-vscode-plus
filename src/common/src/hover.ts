@@ -40,7 +40,7 @@ export async function hoverComponentAttrMarkdown(tag: string, name: string, lc: 
 async function getComponent(tagName: string, lc: LanguageConfig, doc: TextDocument, co?: CustomOptions) {
   let comp = [...lc.components, ...components].find(c => c.name === tagName)
   if (!comp) {
-    comp = ([...await getCustomComponents(co), ...await getGlobalComponents(doc, co)]).find(c => c.name === tagName)
+    comp = ([...await getCustomComponents(tagName, co), ...await getGlobalComponents(doc, tagName, co)]).find(c => c.name === tagName)
   }
   return comp
 }

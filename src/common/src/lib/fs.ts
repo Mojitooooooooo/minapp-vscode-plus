@@ -13,3 +13,5 @@ export const readdir = promisify(fs.readdir)
 export const readFile = promisify(fs.readFile)
 
 export const exists = promisify(fs.exists)
+
+export const statSync = fs.statSync

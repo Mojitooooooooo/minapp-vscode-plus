@@ -12,7 +12,7 @@ export async function definitionTagName(tagName: string, lc: LanguageConfig, doc
     return undefined;
   }
 
-  const components: Component[] = [...await getCustomComponents(co), ...await getGlobalComponents(doc, co)];
+  const components: Component[] = [...await getCustomComponents(tagName, co), ...await getGlobalComponents(doc, tagName, co)];
   for (const component of components) {
     if (component.name === tagName) {
       return component;

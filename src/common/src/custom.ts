@@ -3,9 +3,9 @@
  Author Mora <qiuzhongleiabc@126.com> (https://github.com/qiu8310)
 *******************************************************************/
 
-import { ConditionalCacheableFile, readdir, readFile, exists, stat } from './lib/'
+import { ConditionalCacheableFile, readdir, readFile, exists, statSync } from './lib/'
 import { JSON_REGEXP, Component } from './dev/'
-import { map, series } from './mora/async';
+import { map } from './mora/async';
 import { parseAttrs } from './parseAttrs'
 import * as JSON5 from 'json5'
 import * as path from 'path'
@@ -23,14 +23,17 @@ export interface CustomOptions {
 
 export { Component }
 
-const getComponents = async (co: CustomOptions): Promise<Component[]> => {
+const getComponents = async (co: CustomOptions, currentTagName: string): Promise<Component[]> => {
   const f = getCachedJsonFile(co.filename)
   try {
     const data = await f.getContent()
     const jsonfile = f.filename as string
     if (data?.usingComponents) {
+      const componentsKeys = Object.keys(data.usingComponents);
+      // 执照当前标签名过滤掉
+      const meetConditionComponents = componentsKeys.filter(key => key.startsWith(currentTagName.replace(/^</, '')));
       return await map(
-        Object.keys(data.usingComponents),
+        meetConditionComponents,
         async name => {
           const filepath = data.usingComponents[name]
           try {
@@ -49,20 +52,20 @@ const getComponents = async (co: CustomOptions): Promise<Component[]> => {
   return []
 }
 
-export async function getGlobalComponents(doc: TextDocument, co?: CustomOptions): Promise<Component[]> {
+export async function getGlobalComponents(doc: TextDocument, currentTagName: string, co?: CustomOptions,): Promise<Component[]> {
   const { globalAppJsonPath } = config
   if(!globalAppJsonPath) {
     return []
   }
   const root = vscode.workspace.getWorkspaceFolder(doc.uri)
 
-  return getComponents({ filename: path.join(root?.uri.fsPath || '', globalAppJsonPath), resolves: co?.resolves || [] })
+  return getComponents({ filename: path.join(root?.uri.fsPath || '', globalAppJsonPath), resolves: co?.resolves || [] }, currentTagName)
 }
 
-export async function getCustomComponents(co?: CustomOptions): Promise<Component[]> {
+export async function getCustomComponents(currentTagName: string, co?: CustomOptions): Promise<Component[]> {
   if (!co) return []
 
-  return getComponents(co)
+  return getComponents(co, currentTagName)
 }
 
 async function parseComponentFile(
@@ -79,22 +82,30 @@ async function parseComponentFile(
     : [path.dirname(refFile), ...resolves] // 使用相对和绝对目录
 
   let found: string | undefined
-  await series(localResolves, async root => {
-    if (found) return
+  const cache: { [key: string]: boolean } = {}
 
-    await series(['', '.js', '.ts'], async ext => {
-      if (found) return
+  for (const root of localResolves) {
+    for (const ext of ['.ts', '.js', '']) {
       const f = path.join(root, filepath + ext)
+      if (cache[f]) continue
+      cache[f] = true
+
       try {
-        const stats = await stat(f)
+        console.time(`statSync ${f}`)
+        const stats = statSync(f)
+        console.timeEnd(`statSync ${f}`)
         if (stats.isFile()) {
           found = f
+          break
         } else if (stats.isDirectory() && ext === '') {
           // 解析 index 文件 或 package.json 中的 main 文件
           if (f.includes('node_modules')) {
             try {
               const pkg = noderequire(path.join(f, 'package.json'))
-              if (pkg.main) found = path.resolve(f, pkg.main)
+              if (pkg.main) {
+                found = path.resolve(f, pkg.main)
+                break
+              }
             } catch (e) {}
           }
 
@@ -102,13 +113,19 @@ async function parseComponentFile(
             // 看看有没有 index.ts 或 index.js
             const f1 = path.join(f, 'index.js')
             const f2 = path.join(f, 'index.ts')
-            if (await exists(f1)) found = f1
-            else if (await exists(f2)) found = f2
+            if (await exists(f1)) {
+              found = f1
+              break
+            } else if (await exists(f2)) {
+              found = f2
+              break
+            }
           }
         }
       } catch (e) {}
-    })
-  })
+    }
+    if (found) break
+  }
 
   if (found) {
     const f = getCachedJsonFile(found)

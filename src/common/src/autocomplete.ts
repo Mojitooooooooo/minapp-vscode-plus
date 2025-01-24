@@ -35,10 +35,10 @@ export interface TagAttrItem {
  * 自动补全支持的所有的 tag
  * @param {CustomOptions} co 用于解析自定义组件的配置
  */
-export async function autocompleteTagName(lc: LanguageConfig, doc: TextDocument, co?: CustomOptions) {
+export async function autocompleteTagName(lc: LanguageConfig, doc: TextDocument, name: string, co?: CustomOptions) {
   const natives: TagItem[] = [...lc.components, ...components].map(mapComponent)
-  const globals: TagItem[] = (await getGlobalComponents(doc, co)).map(mapComponent)
-  const customs: TagItem[] = (await getCustomComponents(co)).map(mapComponent)
+  const globals: TagItem[] = (await getGlobalComponents(doc, name, co)).map(mapComponent)
+  const customs: TagItem[] = (await getCustomComponents(name, co)).map(mapComponent)
 
   return {
     customs,
@@ -155,7 +155,7 @@ function createComponentFilter(existsTagAttrs: { [key: string]: string | boolean
 async function getComponent(tagName: string, lc: LanguageConfig, doc: TextDocument, co?: CustomOptions) {
   let comp = [...lc.components, ...components].find(c => c.name === tagName)
   if (!comp) {
-    comp = ([...await getCustomComponents(co), ...await getGlobalComponents(doc, co)]).find(c => c.name === tagName)
+    comp = ([...await getCustomComponents(tagName, co), ...await getGlobalComponents(doc, tagName, co)]).find(c => c.name === tagName)
   }
   return comp
 }
